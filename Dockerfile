@@ -6,7 +6,6 @@ USER root
 COPY choreo-wrapper.sh /app/choreo-wrapper.sh
 
 # 2. 执行系统改造 + 安全修复
-# 注意：我们将所有操作合并在一个 RUN 中以减少镜像层数
 RUN chmod +x /app/choreo-wrapper.sh && \
     # -----------------------------------------------------------------
     # [Choreo 适配] 解决只读文件系统问题
@@ -19,16 +18,17 @@ RUN chmod +x /app/choreo-wrapper.sh && \
     # -----------------------------------------------------------------
     apt-get update && \
     apt-get install -y --only-upgrade libsqlite3-0 sqlite3 && \
-    # 清理缓存减小体积
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* && \
     # -----------------------------------------------------------------
     # [安全修复] 2. 修复 Node.js 依赖漏洞
     # -----------------------------------------------------------------
-    # 修复 form-data (CVE-2025-7783): 升级到 4.0.4+
+    # 修复 form-data (CVE-2025-7783)
     npm install form-data@4.0.4 && \
-    # 修复 esbuild (CVE-2024-24790): 升级架构包以获取新版 Go 编译的二进制
-    npm install @esbuild/linux-x64@latest
+    # 修复 esbuild (CVE-2024-24790): 
+    # 强制安装最新版 esbuild 主包，它会自动依赖最新版的 @esbuild/linux-x64
+    # 这能解决嵌套依赖导致的漏洞残留
+    npm install esbuild@latest
 
 USER 10014
 
