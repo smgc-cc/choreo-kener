@@ -5,7 +5,7 @@ USER root
 # 1. 复制 wrapper 脚本
 COPY choreo-wrapper.sh /app/choreo-wrapper.sh
 
-# 2. 执行系统改造 + 安全修复
+# 2. 执行系统改造 + 深度安全修复
 RUN chmod +x /app/choreo-wrapper.sh && \
     # -----------------------------------------------------------------
     # [Choreo 适配] 解决只读文件系统问题
@@ -21,14 +21,25 @@ RUN chmod +x /app/choreo-wrapper.sh && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* && \
     # -----------------------------------------------------------------
-    # [安全修复] 2. 修复 Node.js 依赖漏洞
+    # [安全修复] 2. 深度修复 Node.js 嵌套依赖漏洞 (重点修改部分)
     # -----------------------------------------------------------------
-    # 修复 form-data (CVE-2025-7783)
+    # A. 修复 form-data 漏洞
     npm install form-data@4.0.4 && \
-    # 修复 esbuild (CVE-2024-24790): 
-    # 强制安装最新版 esbuild 主包，它会自动依赖最新版的 @esbuild/linux-x64
-    # 这能解决嵌套依赖导致的漏洞残留
-    npm install esbuild@latest
+    # B. 修复 esbuild 漏洞 (CVE-2024-24790)
+    # 使用 overrides 强制所有依赖（包括 vite）都使用最新版 esbuild
+    # 这会消除 node_modules/vite/node_modules/... 下的旧版本
+    npm pkg set overrides.esbuild="^0.24.2" && \
+    npm pkg set overrides.@esbuild/linux-x64="^0.24.2" && \
+    # C. 应用更改
+    # 删除 lock 文件以强制重新计算依赖树
+    rm -f package-lock.json && \
+    # 重新安装，npm 现在会把所有 esbuild 统一升级到 0.24.2
+    npm install && \
+    # D. 双重保险：物理删除任何可能残留的旧版二进制文件
+    # 如果 npm install 没清理干净，这里直接手动删除嵌套的 esbuild 文件夹
+    rm -rf node_modules/vite/node_modules/@esbuild && \
+    # 清理缓存减小体积
+    npm cache clean --force
 
 USER 10014
 
