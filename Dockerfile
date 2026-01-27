@@ -4,13 +4,13 @@ FROM rajnandan1/kener:latest
 USER root
 
 # 2. 拷贝本地的启动脚本到镜像中
-COPY entrypoint.sh /app/entrypoint.sh
+COPY choreo-entrypoint.sh /app/choreo-entrypoint.sh
 
 # 3. 设置权限：
 # - 赋予脚本执行权限
 # - 删除原有的只读目录
 # - 创建指向 /tmp 的软链接
-RUN chmod +x /app/entrypoint.sh && \
+RUN chmod +x /app/choreo-entrypoint.sh && \
     rm -rf /app/database /app/uploads && \
     ln -s /tmp/database /app/database && \
     ln -s /tmp/uploads /app/uploads
@@ -19,7 +19,7 @@ RUN chmod +x /app/entrypoint.sh && \
 USER 10014
 
 # 5. 指定新的入口点
-ENTRYPOINT ["/app/entrypoint.sh"]
+ENTRYPOINT ["/app/choreo-entrypoint.sh"]
 
 # 6. 保持默认启动命令
 CMD ["node", "main"]
