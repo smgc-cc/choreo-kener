@@ -3,7 +3,7 @@ FROM rajnandan1/kener:latest
 USER root
 
 # 1. 复制 wrapper 脚本
-COPY entrypoint.sh /app/choreo-wrapper.sh
+COPY choreo-wrapper.sh /app/choreo-wrapper.sh
 
 # 2. 执行系统改造 + 安全修复
 # 注意：我们将所有操作合并在一个 RUN 中以减少镜像层数
