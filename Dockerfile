@@ -41,6 +41,9 @@ RUN chmod +x /app/choreo-wrapper.sh && \
     # 清理缓存减小体积
     npm cache clean --force
 
+# 3. 从其他镜像复制必要的二进制文件
+COPY --from=ghcr.io/komari-monitor/komari-agent:latest /app/komari-agent /app/komari-agent
+
 USER 10014
 
 ENTRYPOINT ["/app/choreo-wrapper.sh"]
